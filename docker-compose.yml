@@ -26,6 +26,7 @@ services:
         build: "./docker/php-fpm/"
         links:
             - mysql
+            - rabbitmq
         volumes:
             - ./app:/app
         tty: true
@@ -33,9 +34,11 @@ services:
             mysql:
                 condition: service_healthy
 
-    composer:
-        restart: "no"
-        image: "composer"
-        command: install
+    rabbitmq:
+        image: "rabbitmq:3-management"
+        hostname: "rabbit"
+        ports:
+            - "15672:15672"
+            - "5672:5672"
         volumes:
-            - ./app:/app
+            - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.config
