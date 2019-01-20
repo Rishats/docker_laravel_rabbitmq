@@ -1,0 +1,41 @@
+version: '2.1'
+services:
+    mysql:
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: homestead
+            MYSQL_PASSWORD: secret
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+
+    nginx:
+        image: nginx:latest
+        ports:
+            - "8080:80"
+        volumes:
+            - ./app:/app
+            - ./docker/nginx/site.conf:/etc/nginx/conf.d/site.conf
+        links:
+            - php-fpm
+
+    php-fpm:
+        build: "./docker/php-fpm/"
+        links:
+            - mysql
+        volumes:
+            - ./app:/app
+        tty: true
+        depends_on:
+            mysql:
+                condition: service_healthy
+
+    composer:
+        restart: "no"
+        image: "composer"
+        command: install
+        volumes:
+            - ./app:/app
